@@ -2,6 +2,18 @@ const obj = JSON.parse(data);
 
 action = String(obj.ItemType)
 
+function fullyDecode(value) {
+    try {
+        while (typeof value === "string" && value.includes("\\")) {
+            value = JSON.parse(`"${value}"`); // Decode any escaped characters
+        }
+    } catch (error) {
+        // If it fails, return as is (it's already clean)
+    }
+    return value;
+}
+
+
 switch (action) {
     case 'Audio':
 	    if (obj.NotificationType === 'PlaybackStart') {
@@ -22,9 +34,11 @@ switch (action) {
 		break;
 	case 'MusicAlbum':
 		if (obj.NotificationType === 'ItemAdded') {
+			// special chars were being printed as \" or \' instead of " and '
+			let ov = fullyDecode(obj.Overview);
 		    result = {
-		        "plain": `New album added:\n Title: ${obj.Name}\n Overview: ${obj.Overview}\n`,
-				"html": `New album added:<br><b>Title</b>: ${obj.Name}<br><b>Overview</b>: ${obj.Overview}`,
+		        "plain": `New album added:\n Title: ${obj.Name}\n Overview: ${ov}\n`,
+				"html": `New album added:<br><b>Title</b>: ${obj.Name}<br><b>Overview</b>: ${ov}`,
 			    version: "v2"
 		    };
 		}
