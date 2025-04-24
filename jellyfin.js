@@ -20,6 +20,208 @@ function buildResult(plain, html, msgtype = "m.notice", version = "v2") {
     };
 }
 
+function handleItemAdded(obj) {
+    const plainFields = [`New item added:`];
+    let highlightedLabels = "";
+    let generalInfoSection = "";
+    let mediaSections = "";
+
+    const itemType = obj.ItemType || "Unknown";
+
+    if (itemType === "Series") {
+        // Series-specific handling
+        plainFields.push(
+            `Name: ${fullyDecode(obj.Name)}`,
+            `Overview: ${fullyDecode(obj.Overview)}`,
+            `Genres: ${obj.Genres || "N/A"}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New series added:</b><br>
+            <b>Name</b>: ${fullyDecode(obj.Name)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Overview</b>: ${fullyDecode(obj.Overview)}<br>
+                <b>Genres</b>: ${obj.Genres || "N/A"}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}
+            </details>
+        `;
+    } else if (itemType === "Movie") {
+        // Movie-specific handling
+        plainFields.push(
+            `Name: ${fullyDecode(obj.Name)}`,
+            `Tagline: ${fullyDecode(obj.Tagline)}`,
+            `Overview: ${fullyDecode(obj.Overview)}`,
+            `Genres: ${obj.Genres || "N/A"}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`,
+            `Run Time: ${obj.RunTime || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New movie added:</b><br>
+            <b>Name</b>: ${fullyDecode(obj.Name)}<br>
+            <b>Tagline</b>: ${fullyDecode(obj.Tagline)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Overview</b>: ${fullyDecode(obj.Overview)}<br>
+                <b>Genres</b>: ${obj.Genres || "N/A"}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}<br>
+                <b>Run Time</b>: ${obj.RunTime || "N/A"}
+            </details>
+        `;
+
+        mediaSections += generateVideoDetails(obj);
+        mediaSections += generateAudioDetails(obj);
+        mediaSections += generateSubtitleDetails(obj);
+    } else if (itemType === "Season") {
+        // Season-specific handling
+        plainFields.push(
+            `Series: ${fullyDecode(obj.SeriesName)}`,
+            `Season: ${obj.SeasonNumber || "N/A"}`,
+            `Name: ${fullyDecode(obj.Name)}`,
+            `Overview: ${fullyDecode(obj.Overview)}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New season added:</b><br>
+            <b>Series</b>: ${fullyDecode(obj.SeriesName)}<br>
+            <b>Season</b>: ${obj.SeasonNumber || "N/A"}: ${fullyDecode(obj.Name)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Overview</b>: ${fullyDecode(obj.Overview)}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}
+            </details>
+        `;
+    } else if (itemType === "Episode") {
+        // Episode-specific handling
+        plainFields.push(
+            `Series: ${fullyDecode(obj.SeriesName)}`,
+            `Season: ${obj.SeasonNumber || "N/A"}`,
+            `Episode: ${obj.EpisodeNumber || "N/A"}`,
+            `Title: ${fullyDecode(obj.Name)}`,
+            `Overview: ${fullyDecode(obj.Overview)}`,
+            `Genres: ${obj.Genres || "N/A"}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New episode added:</b><br>
+            <b>Series</b>: ${fullyDecode(obj.SeriesName)}<br>
+            <b>Season</b>: ${obj.SeasonNumber || "N/A"}<br>
+            <b>Episode</b>: ${obj.EpisodeNumber || "N/A"}: ${fullyDecode(obj.Name)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Overview</b>: ${fullyDecode(obj.Overview)}<br>
+                <b>Genres</b>: ${obj.Genres || "N/A"}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}
+            </details>
+        `;
+
+        mediaSections += generateVideoDetails(obj);
+        mediaSections += generateAudioDetails(obj);
+        mediaSections += generateSubtitleDetails(obj);
+    } else if (itemType === "MusicAlbum") {
+        // MusicAlbum-specific handling
+        plainFields.push(
+            `Name: ${fullyDecode(obj.Name)}`,
+            `Artist: ${fullyDecode(obj.Artist)}`,
+            `Overview: ${fullyDecode(obj.Overview)}`,
+            `Genres: ${obj.Genres || "N/A"}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`,
+            `Run Time: ${obj.RunTime || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New music album added:</b><br>
+            <b>Name</b>: ${fullyDecode(obj.Name)}<br>
+            <b>Artist</b>: ${fullyDecode(obj.Artist)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Overview</b>: ${fullyDecode(obj.Overview)}<br>
+                <b>Genres</b>: ${obj.Genres || "N/A"}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}<br>
+                <b>Run Time</b>: ${obj.RunTime || "N/A"}
+            </details>
+        `;
+    } else if (itemType === "Audio") {
+        // Audio-specific handling
+        plainFields.push(
+            `Name: ${fullyDecode(obj.Name)}`,
+            `Album: ${fullyDecode(obj.Album)}`,
+            `Artist: ${fullyDecode(obj.Artist)}`,
+            `Genres: ${obj.Genres || "N/A"}`,
+            `Year: ${obj.Year || "N/A"}`,
+            `Premiere Date: ${obj.PremiereDate || "N/A"}`,
+            `Run Time: ${obj.RunTime || "N/A"}`
+        );
+
+        highlightedLabels = `
+            <b>New audio track added:</b><br>
+            <b>Name</b>: ${fullyDecode(obj.Name)}<br>
+            <b>Album</b>: ${fullyDecode(obj.Album)}<br>
+            <b>Artist</b>: ${fullyDecode(obj.Artist)}<br>
+        `;
+
+        generalInfoSection = `
+            <details>
+                <summary><b>General Info</b></summary>
+                <b>Genres</b>: ${obj.Genres || "N/A"}<br>
+                <b>Year</b>: ${obj.Year || "N/A"}<br>
+                <b>Premiere Date</b>: ${obj.PremiereDate || "N/A"}<br>
+                <b>Run Time</b>: ${obj.RunTime || "N/A"}
+            </details>
+        `;
+
+        mediaSections += generateAudioDetails(obj);
+    } else {
+        // Handle unknown ItemType by displaying all JSON fields
+        plainFields.push(`Unknown item type: ${itemType}`);
+        highlightedLabels = `<b>New item of unknown type added:</b><br>`;
+        generalInfoSection = `
+            <details>
+                <summary><b>Full Details</b></summary>
+                <pre>${JSON.stringify(obj, null, 2)}</pre>
+            </details>
+        `;
+    }
+
+    const plain = plainFields.join("\n");
+    const html = `
+        ${highlightedLabels}
+        ${generalInfoSection}
+        ${mediaSections}
+    `;
+
+    return buildResult(plain, html);
+}
+
 function handlePlaybackStart(obj) {
     const plainFields = [`User ${obj.NotificationUsername || "N/A"} is playing:`];
     let highlightedLabels = "";
@@ -282,6 +484,9 @@ switch (obj.NotificationType) {
     case "ItemDeleted":
         result = handleItemDeleted(obj);
         break;
+	case "ItemAdded":
+	    result = handleItemAdded(obj);
+		break;
     default:
         result = handleUnknown(obj);
         break;
