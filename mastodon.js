@@ -1,11 +1,23 @@
-// Helper function to create HTML <details> sections
-const createDetails = (title, content) =>
-  `<details><summary>${title}</summary>${content}</details>`;
+// Supported event types with enable/disable toggle
+const supportedEvents = {
+  "status.created": false, // Enable
+  "report.updated": true, // Enable
+  "some.other.event": false, // Disable (example of a disabled event)
+};
 
-// Switch statement for handling different event types
+// Function to check if an event type is enabled
+const isEventEnabled = (eventType) => supportedEvents[eventType] === true;
+
+// Main switch statement for processing events
 switch (data.event) {
   case "status.created": {
-    // Extract fields from the payload
+    if (!isEventEnabled("status.created")) {
+      // If the event is disabled, set the result to empty
+      result = { empty: true, version: "v2" };
+      break;
+    }
+
+    // Process "status.created" event
     const plain = JSON.stringify(data, null, 2); // Plain text representation of the entire payload
 
     const account = data.object?.account || {};
@@ -69,7 +81,13 @@ switch (data.event) {
   }
 
   case "report.updated": {
-    // Extract relevant fields from the report.updated payload
+    if (!isEventEnabled("report.updated")) {
+      // If the event is disabled, set the result to empty
+      result = { empty: true, version: "v2" };
+      break;
+    }
+
+    // Process "report.updated" event
     const report = data.object || {};
     const account = report.account?.account || {};
     const actionTakenBy = report.action_taken_by_account?.account || {};
