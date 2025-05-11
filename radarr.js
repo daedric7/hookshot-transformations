@@ -54,6 +54,27 @@ switch (data.eventType) {
 		};
 		break;
 	}
+	case "MovieFileDelete": {
+		const movie = data.movie || {};
+		const movieTitle = movie.title || "Unknown Title";
+		const movieYear = movie.year || "Unknown Year";
+		const moviePath = movie.folderPath || "Unknown Path";
+		const genres = (movie.genres || []).join(", ") || "Unknown Genres";
+		const overview = movie.overview || "No overview available.";
+		const imdbId = movie.imdbId ? `https://www.imdb.com/title/${movie.imdbId}` : "Unavailable";
+		const tmdbId = movie.tmdbId ? `https://www.themoviedb.org/movie/${movie.tmdbId}` : "Unavailable";
+		const originalLanguage = movie.originalLanguage?.name || "Unknown Language";
+		const movieFile = data.movieFile || {};
+		const movieFolderSize = formatFileSize(movieFile.size || 0);
+
+		result = {
+			version: "v2",
+			empty: false,
+			plain: `🗑️ **Movie File Deleted:**\nTitle: "${movieTitle}" (${movieYear})\nLanguage: "${originalLanguage}"\nPath: "${moviePath}"\nGenres: ${genres}\nOverview: "${overview}"\nDeleted Files: ${deletedFiles}\nFolder Size: ${movieFolderSize}`,
+			html: `🗑️ <b>Movie File Deleted:</b><br>Title: "<i>${movieTitle}</i>" (${movieYear})<br>Language: "${originalLanguage}"<br>Path: "<code>${moviePath}</code>"<br>Genres: ${genres}<br>Overview: "${overview}"<br>Deleted Files: ${deletedFiles}<br>Folder Size: ${movieFolderSize}`
+		};
+		break;
+	}
 	case "MovieAdded": {
 		const movie = data.movie || {};
 		const movieTitle = movie.title || "Unknown Title";
