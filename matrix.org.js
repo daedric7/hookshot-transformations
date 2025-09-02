@@ -11,15 +11,38 @@ function createDetails(summary, content) {
   return `<details><summary>${summary}</summary>${content}</details>`;
 }
 
+// Helper to detect a Matrix status payload (incident, meta, page at top level)
+function isMatrixIncidentPayload(obj) {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    obj.incident &&
+    obj.meta &&
+    obj.page
+  );
+}
+
+// Main event type extraction: fallback to matrix.status_report if incident structure
+let eventType = data.event;
+let payload = data.object;
+
+if (!eventType) {
+  // Try to treat the top-level as payload if matches Matrix incident structure
+  if (isMatrixIncidentPayload(data)) {
+    eventType = "matrix.status_report";
+    payload = data;
+  }
+}
+
 // Main switch statement for processing events
-switch (data.event) {
+switch (eventType) {
   case "matrix.status_report": {
     if (!isEventEnabled("matrix.status_report")) {
       result = { empty: true, version: "v2" };
       break;
     }
 
-    const payload = data.object || {};
+    payload = payload || {};
     const incident = payload.incident || {};
     const page = payload.page || {};
     const meta = payload.meta || {};
@@ -120,7 +143,7 @@ switch (data.event) {
 
   default:
     result = {
-      plain: `*Unknown Event* - ${data.event}`,
+      plain: `*Unknown Event* - ${eventType}`,
       version: "v2",
     };
     break;
