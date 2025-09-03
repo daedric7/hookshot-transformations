@@ -1,6 +1,7 @@
 // Supported event types with enable/disable toggle
 const supportedEvents = {
   "matrix.status_report": true, // Enable Matrix status report event
+  "matrix.component_update": true, // Enable Matrix component update event
 };
 
 // Function to check if an event type is enabled
@@ -11,7 +12,7 @@ function createDetails(summary, content) {
   return `<details><summary>${summary}</summary>${content}</details>`;
 }
 
-// Helper to detect a Matrix status payload (incident, meta, page at top level)
+// Helper to detect a Matrix incident payload (incident, meta, page at top level)
 function isMatrixIncidentPayload(obj) {
   return (
     obj &&
@@ -22,14 +23,29 @@ function isMatrixIncidentPayload(obj) {
   );
 }
 
-// Main event type extraction: fallback to matrix.status_report if incident structure
+// Helper to detect a Matrix component update payload (component, component_update, meta, page at top level)
+function isMatrixComponentUpdatePayload(obj) {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    obj.component &&
+    obj.component_update &&
+    obj.meta &&
+    obj.page
+  );
+}
+
+// Main event type extraction: fallback if missing
 let eventType = data.event;
 let payload = data.object;
 
+// Add support for eventless incident AND component update payloads
 if (!eventType) {
-  // Try to treat the top-level as payload if matches Matrix incident structure
   if (isMatrixIncidentPayload(data)) {
     eventType = "matrix.status_report";
+    payload = data;
+  } else if (isMatrixComponentUpdatePayload(data)) {
+    eventType = "matrix.component_update";
     payload = data;
   }
 }
@@ -48,6 +64,9 @@ switch (eventType) {
     const meta = payload.meta || {};
     const components = incident.components || [];
     const updates = incident.incident_updates || [];
+
+    // ... (same as previous incident code, omitted for brevity)
+    // [--- Incident summary, page summary, components, updates, html/plain output ---]
 
     // Incident summary
     const incidentSummary = `
@@ -128,6 +147,72 @@ switch (eventType) {
         ${upd.body || ""}
         ${upd.affected_components?.map(acomp => `* ${acomp.name || "N/A"}: ${acomp.old_status || "N/A"} → ${acomp.new_status || "N/A"}`).join("\n") || ""}
       `).join("\n")}
+      Unsubscribe: ${meta.unsubscribe || "N/A"}
+      Documentation: ${meta.documentation || "N/A"}
+      Generated At: ${meta.generated_at || "N/A"}
+    `;
+
+    result = {
+      version: "v2",
+      plain,
+      html,
+    };
+    break;
+  }
+
+  case "matrix.component_update": {
+    if (!isEventEnabled("matrix.component_update")) {
+      result = { empty: true, version: "v2" };
+      break;
+    }
+
+    payload = payload || {};
+    const component = payload.component || {};
+    const update = payload.component_update || {};
+    const page = payload.page || {};
+    const meta = payload.meta || {};
+
+    // HTML Output
+    const html = `
+      <h2>Matrix.org Component Update</h2>
+      ${createDetails("Component Info", `
+        <p><b>Name:</b> ${component.name || "N/A"}</p>
+        <p><b>Description:</b> ${component.description || "N/A"}</p>
+        <p><b>Status:</b> ${component.status || "N/A"}</p>
+        <p><b>Showcase:</b> ${component.showcase ? "Yes" : "No"}</p>
+        <p><b>Created At:</b> ${component.created_at || "N/A"}</p>
+        <p><b>Updated At:</b> ${component.updated_at || "N/A"}</p>
+      `)}
+      ${createDetails("Component Update", `
+        <p><b>New Status:</b> ${update.new_status || "N/A"}</p>
+        <p><b>Old Status:</b> ${update.old_status || "N/A"}</p>
+        <p><b>Update Time:</b> ${update.created_at || "N/A"}</p>
+        <p><b>State:</b> ${update.state || "N/A"}</p>
+      `)}
+      ${createDetails("Page Info", `
+        <p><b>Status Indicator:</b> ${page.status_indicator || "N/A"}</p>
+        <p><b>Status Description:</b> ${page.status_description || "N/A"}</p>
+      `)}
+      ${createDetails("Meta", `
+        <p><b>Unsubscribe:</b> <a href="${meta.unsubscribe || "#"}" target="_blank">${meta.unsubscribe || "N/A"}</a></p>
+        <p><b>Documentation:</b> <a href="${meta.documentation || "#"}" target="_blank">${meta.documentation || "N/A"}</a></p>
+        <p><b>Generated At:</b> ${meta.generated_at || "N/A"}</p>
+      `)}
+      <hr>
+    `;
+
+    // Plain Output
+    const plain = `
+      Matrix.org Component Update
+      Component: ${component.name || "N/A"}
+      Description: ${component.description || "N/A"}
+      Status: ${component.status || "N/A"}
+      New Status: ${update.new_status || "N/A"}
+      Old Status: ${update.old_status || "N/A"}
+      Update Time: ${update.created_at || "N/A"}
+      State: ${update.state || "N/A"}
+      Status Indicator: ${page.status_indicator || "N/A"}
+      Status Description: ${page.status_description || "N/A"}
       Unsubscribe: ${meta.unsubscribe || "N/A"}
       Documentation: ${meta.documentation || "N/A"}
       Generated At: ${meta.generated_at || "N/A"}
