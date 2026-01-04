@@ -2,31 +2,28 @@
 // Expects `data` to contain the incoming JSON payload.
 // Produces a top-level `response` variable with a minimal plaintext summary.
 
-(function () {
-  // Helpers
-  function safe(v, alt = "N/A") {
-    return v === undefined || v === null || v === "" ? alt : String(v);
-  }
+// Helpers
+function safe(v, alt = "N/A") {
+  return v === undefined || v === null || v === "" ? alt : String(v);
+}
 
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#39;");
-  }
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
-  if (!data || typeof data !== "object") {
-    response = {
-      version: "v2",
-      empty: true,
-      plain: "No payload provided.",
-      html: "<i>No payload provided.</i>"
-    };
-    return;
-  }
-
+if (!data || typeof data !== "object") {
+  response = {
+    version: "v2",
+    empty: true,
+    plain: "No payload provided.",
+    html: "<i>No payload provided.</i>"
+  };
+} else {
   const account = safe(data.account);
   const reason = safe(data.reason);
   const url = safe(data.url);
@@ -51,4 +48,4 @@
     plain,
     html
   };
-})();
+}
